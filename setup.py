@@ -1,6 +1,7 @@
 import re
 
-from pkg_resources import DistributionNotFound, get_distribution
+from importlib import metadata as importlib_metadata
+from importlib.metadata import PackageNotFoundError
 from setuptools import setup, find_packages
 
 INSTALL_REQUIRES = [
@@ -8,7 +9,6 @@ INSTALL_REQUIRES = [
     "typing-extensions>=4.9.0; python_version<'3.10'",
     "stringzilla>=3.10.4",
     "simsimd>=5.9.2"
-
 ]
 
 MIN_OPENCV_VERSION = "4.9.0.80"
@@ -25,16 +25,18 @@ def choose_requirement(mains: tuple[str, ...], secondary: str) -> str:
     for main in mains:
         try:
             name = re.split(r"[!<>=]", main)[0]
-            get_distribution(name)
+            importlib_metadata.distribution(name)
             chosen = main
             break
-        except DistributionNotFound:
+        except PackageNotFoundError:
             pass
+    print(f"chosen:{chosen}")
     return chosen
 
 def get_install_requirements(install_requires: list[str], choose_install_requires: list[tuple[tuple[str, ...], str]]) -> list[str]:
     for mains, secondary in choose_install_requires:
         install_requires.append(choose_requirement(mains, secondary))
+    print(f"install_requires:{install_requires}")
     return install_requires
 
 setup(
